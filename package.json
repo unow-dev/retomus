@@ -1,0 +1,23 @@
+{
+   "name": "retomus",
+   "version": "0.1.0",
+   "description": "A machine-based state management library for React, separating logic from UI.",
+   "main": "dist/index.js",
+   "module": "dist/index.js",
+   "types": "dist/index.d.ts",
+   "files": [
+      "dist"
+   ],
+   "scripts": {
+      "build": "tsc"
+   },
+   "peerDependencies": {
+      "react": ">=18.0.0"
+   },
+   "devDependencies": {
+      "@types/react": "^18.2.0",
+      "react": ">=18.0.0",
+      "typescript": "^5.8.2"
+   },
+   "license": "MIT"
+}

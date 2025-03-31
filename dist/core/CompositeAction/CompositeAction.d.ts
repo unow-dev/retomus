@@ -1,0 +1,35 @@
+import { ActionHandler } from '../../common/types/Action';
+import RetomusEventBus from '../Retomus/RetomusEventBus';
+import { ICompositeAction, ActionFlow, ResultBus, CompositeActionEventBus, CompositeActionConfig, ActionFlowMatter, SingleActionFlowMatter, ActionName, ParallelActionFlowMatter, SequenceActionFlowMatter, CompositeActionApi } from './types';
+export declare class CompositeAction implements ICompositeAction {
+    id: string;
+    actionHandlers: Map<string, ActionHandler>;
+    actionFlow: ActionFlow;
+    resultBus: ResultBus;
+    subscribers: Record<string, Set<() => void>>;
+    machineIdAndActionNames: Map<string, string[]>;
+    eventBus: CompositeActionEventBus;
+    retomusEventBus: RetomusEventBus;
+    totalOfActions: number;
+    countOfReadyActions: number;
+    concurrency: number;
+    currentExecutionCount: number;
+    constructor(config: CompositeActionConfig, retomusEventBus: RetomusEventBus);
+    _processActionFlowMatters(actionFlowMatters: ActionFlow): void;
+    _processActionFlowMatter(actionFlowMatter: ActionFlowMatter): void;
+    _processSingleActionFlowMatter(actionFlowMatter: SingleActionFlowMatter): void;
+    setHandler(actionName: ActionName, handler: ActionHandler): void;
+    _processParallelActionFlowMatter(actionFlowMatter: ParallelActionFlowMatter): void;
+    _processSequenceActionFlowMatter(actionFlowMatter: SequenceActionFlowMatter): void;
+    subscribe(subscriber: () => void, scope: string): () => void;
+    subscribeReady(subscriber: () => void): () => void;
+    notifySubscribers(scope: string): void;
+    notifyReady(): void;
+    getHooks(): CompositeActionApi;
+    _executeAction: (actionName: string, payload: any) => Promise<void>;
+    _handleActionFlowMatter: (actionFlowMatter: ActionFlowMatter, payload: any) => Promise<void>;
+    _handleSequenceActionFlowMatter: (_actionFlowMatter: SequenceActionFlowMatter, payload: any) => Promise<void>;
+    _handleParallelActionFlowMatter: (_actionFlowMatter: ParallelActionFlowMatter, payload: any) => Promise<void>;
+    execute(payload: any): Promise<any>;
+}
+export default CompositeAction;
