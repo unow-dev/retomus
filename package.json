@@ -1,23 +1,36 @@
 {
-   "name": "retomus",
-   "version": "0.1.0",
-   "description": "A machine-based state management library for React, separating logic from UI.",
-   "main": "dist/index.js",
-   "module": "dist/index.js",
-   "types": "dist/index.d.ts",
-   "files": [
-      "dist"
-   ],
-   "scripts": {
-      "build": "tsc"
-   },
-   "peerDependencies": {
-      "react": ">=18.0.0"
-   },
-   "devDependencies": {
-      "@types/react": "^18.2.0",
-      "react": ">=18.0.0",
-      "typescript": "^5.8.2"
-   },
-   "license": "MIT"
+  "name": "retomus",
+  "version": "0.0.1",
+  "description": "A machine-based state management library for React, separating logic from UI.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "analyze:deps": "ts-node scripts/analyze-deps.ts",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0 <20.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.2",
+    "react": "^19.1.0",
+    "ts-morph": "^25.0.1",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.2"
+  },
+  "license": "MIT"
 }

@@ -1,13 +1,15 @@
 {
-   "compilerOptions": {
-      "target": "ES2019",
-      "module": "ESNext",
-      "declaration": true,
-      "outDir": "dist",
-      "strict": false,
-      "esModuleInterop": true,
-      "skipLibCheck": true,
-      "moduleResolution": "node",
-   },
-   "include": ["src"]
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
+    "module": "NodeNext",
+    "target": "ES2019",
+    "esModuleInterop": true,
+    "moduleResolution": "NodeNext",
+    "skipLibCheck": true,
+    "strict": false,
+    "jsx": "react-jsx"
+  },
+  "include": ["src"]
 }

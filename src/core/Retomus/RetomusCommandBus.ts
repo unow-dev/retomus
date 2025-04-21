@@ -7,6 +7,7 @@ class RetomusCommandBus extends CommandBus<RetomusCommandMap> {
       super({
          getMachine: (id: string) => retomusInstance.getMachine(id),
          getCtx: (id: string) => retomusInstance.getCtx(id),
+         getValueCategories: () => retomusInstance.getValueCategories(),
       });
    }
 }

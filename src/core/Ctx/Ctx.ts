@@ -1,116 +1,171 @@
-import { IMachineCtx } from './types';
+import {
+   CtxId,
+   ReactRefValueSetter,
+   Value,
+   ValueCategories,
+   ValueId,
+} from '../../common/types/Value';
+import {
+   compileValueCategoriesRecordToMap,
+   compileValuesMapToRecord,
+   compileValuesRecordToMap,
+   createValueId,
+} from '../../common/utils';
+import { CtxMatter, IMachineCtx } from './types';
 import React from 'react';
+
+const createCtx = (
+   id: CtxId,
+   values: Record<string, Record<string, any>>,
+   valueCategories: Record<string, any>,
+) => {
+   return new Ctx(
+      id,
+      compileValuesRecordToMap(values, id),
+      compileValueCategoriesRecordToMap(valueCategories),
+   );
+};
 
 class Ctx implements IMachineCtx {
    id: string;
-   states: Map<string, any>;
-   refs: Record<string, any>;
-
-   stateSubscribers: Map<
-      string,
-      Set<React.Dispatch<React.SetStateAction<any>>>
-   > = new Map();
+   values: Map<ValueId, Value> = new Map();
+   subscribers: Map<ValueId, Set<React.Dispatch<Value>>> = new Map();
+   valueCategories: ValueCategories = new Map();
 
    constructor(
       id: string,
-      states: Record<string, any> = {},
-      refs: Record<string, any> = {},
+      values: Map<ValueId, Value> = new Map(),
+      valueCategories: ValueCategories,
    ) {
       this.id = id;
-      this.states = new Map(Object.entries(states));
-      this.refs = refs;
+      this.values = values;
+
+      this.valueCategories = valueCategories;
+      console.log('values in Ctx', values);
+      this.values.forEach((_, valueId) => {
+         this.subscribers.set(valueId, new Set());
+      });
+   }
+
+   getCtxIdByValueId(valueId: ValueId) {
+      return this.id;
    }
 
    dynamicSetup(
-      ctxMatter: Record<'states' | 'refs', Record<string, any>>,
+      ctxMatter: CtxMatter,
       options: {
          overwrite: boolean;
-      },
+      } = { overwrite: true },
    ) {
-      const stateEntries = Object.entries(ctxMatter?.states ?? {});
-      if (options?.overwrite) {
-         for (const [key, value] of stateEntries) {
-            this.states.set(key, value);
+      const needNotify: [ValueId, any][] = [];
+      const newValues = compileValuesRecordToMap(ctxMatter, this.id);
+      newValues.forEach((value, valueId) => {
+         if (!this.values.has(valueId)) {
+            this.setValue(valueId, value);
          }
-         this.refs = ctxMatter?.refs ?? {};
-      } else {
-         for (const [key, value] of stateEntries) {
-            this.states.set(key, value);
+         const newValue = value;
+         const oldValue = this.getValue(valueId);
+         if (newValue !== oldValue && options.overwrite) {
+            this.setValue(valueId, newValue);
+            needNotify.push([valueId, newValue]);
          }
-      }
-      for (const [key, value] of this.states) {
-         this._notifyStateSubscribers(key, value);
-      }
-   }
-
-   setValue(key: string, value: any, category: 'states' | 'refs') {
-      if (category === 'states') {
-         this._setState(key, value);
-      } else {
-         this[category][key] = value;
+      });
+      for (const [valueId, value] of needNotify) {
+         this._notifySubscribers(valueId, value);
       }
    }
 
-   getValue(key: string, category: 'states' | 'refs'): any {
-      if (category === 'states') {
-         return this.states.get(key);
-      } else {
-         return this[category][key];
-      }
+   setValue(key: ValueId, value: any) {
+      console.log('setValue in Ctx', key, value);
+      this.values.set(key, value);
+      this._notifySubscribers(key, value);
    }
 
-   subscribeState(
-      key: string,
-      setState: React.Dispatch<React.SetStateAction<any>>,
-   ) {
-      if (!this.stateSubscribers.has(key)) {
-         this.stateSubscribers.set(key, new Set());
+   getValue(key: ValueId): any {
+      return this.values.get(key);
+   }
+
+   getValueAndSetter(key: ValueId) {
+      return this.values.get(key);
+   }
+
+   subscribe(key: ValueId, setValue: ReactRefValueSetter) {
+      if (!this.subscribers.has(key)) {
+         this.subscribers.set(key, new Set());
       }
-      this.stateSubscribers.get(key)?.add(setState);
+      this.subscribers.get(key)?.add(setValue);
+      console.log(
+         'this.subscribers.get(key)',
+         this.subscribers.get(key),
+         key,
+         setValue,
+      );
       return () => {
-         this.stateSubscribers.get(key)?.delete(setState);
+         this.subscribers.get(key)?.delete(setValue);
       };
    }
 
    toRecord() {
-      return {
-         states: Object.fromEntries(this.states),
-         refs: this.refs,
-      };
+      return compileValuesMapToRecord(this.values);
    }
 
-   toReactiveRecord() {
-      const getStateProxy = ctx =>
-         new Proxy(
+   _createValueProxies(ctx: Ctx, options: { readonly: boolean } = { readonly: false }) {
+      const proxies = {};
+      ctx.valueCategories.forEach((_value, valueCategoryName) => {
+         proxies[valueCategoryName] = new Proxy<any>(
             {},
             {
-               get(_, prop: string) {
-                  return ctx.getValue(prop, 'states');
+               get(target, prop: string) {
+                  console.log('prop', prop);
+                  if (typeof prop === 'symbol') {
+                     return target[prop];
+                  }
+                  const valueId = createValueId(prop, valueCategoryName);
+                  if (ctx.values.has(valueId)) {
+                     return ctx.getValue(valueId);
+                  }
                },
-               set(_, prop: string, value) {
-                  ctx._setState(prop, value);
+               set(target, prop: string, value) {
+                  if (options.readonly) {
+                     return true;
+                  }
+                  if (typeof prop === 'symbol') {
+                     return true;
+                  }
+                  const valueId = createValueId(prop, valueCategoryName);
+                  if (ctx.values.has(valueId)) {
+                     ctx.setValue(valueId, value);
+                     return true;
+                  }
                   return true;
                },
             },
          );
-      return {
-         states: getStateProxy(this),
-         refs: this.refs,
-      };
+      });
+      console.log('proxies', proxies);
+      return proxies;
    }
 
-   private _setState(key: string, value: any) {
-      if (this.states.get(key) !== value) {
-         this.states.set(key, value);
-         this._notifyStateSubscribers(key, value);
+   toReactiveRecord(options = { readonly: false }) {
+      return this._createValueProxies(this, options);
+   }
+
+   private _notifySubscribers(valueId: ValueId, value: any) {
+      if (!this.subscribers.get(valueId)) {
+         return;
       }
-   }
-
-   private _notifyStateSubscribers(key: string, value: any) {
-      this.stateSubscribers.get(key)?.forEach(setState => {
+      this.subscribers.get(valueId)?.forEach(setState => {
          setState(value);
       });
+      console.log(
+         'this.subscribers.get(valueId) in _notifySubscribers',
+         this.subscribers.get(valueId),
+         value,
+         valueId,
+         `ctxId ${this.id}`,
+      );
    }
 }
 
 export default Ctx;
+export { createCtx };

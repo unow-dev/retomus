@@ -1,10 +1,18 @@
+import {
+   CtxId,
+   ValueCategoryName,
+   ValueId,
+   ValueName,
+} from '../../common/types/Value';
 
 interface IMachineCtx {
-   setValue: (key: string, value: any, category: 'states' | 'refs') => void;
-   getValue: (value: any, category: 'states' | 'refs') => any;
+   setValue: (key: string, value: any, category: Record<string, any>) => void;
+   getValue: (value: any, category: Record<string, any>) => any;
+   subscribe: (key: string, setState: any, categoryId: string) => any;
    dynamicSetup: (ctx: any, options: any) => void;
    toRecord: () => Record<string, any>;
-   toReactiveRecord: () => ReactiveCtx;
+   toReactiveRecord: (options: { readonly: boolean }) => ReactiveCtx;
+   getCtxIdByValueId: (valueId: ValueId) => CtxId;
 }
 
 type CtxApi = {
@@ -14,6 +22,8 @@ type CtxApi = {
    useFlag: any;
 };
 
+type CtxMatter = Record<ValueCategoryName, Record<ValueName, any>>;
+
 type ReactiveCtx = Record<string, any>;
 
-export { IMachineCtx, CtxApi, ReactiveCtx };
+export { IMachineCtx, CtxApi, ReactiveCtx, CtxMatter };

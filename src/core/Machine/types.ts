@@ -1,22 +1,20 @@
-import { ActionHandler } from "../../common/types/Action";
+import { ActionHandler } from '../../common/types/Action';
+import { CtxMatter } from '../Ctx/types';
 
 type MachineConfig = {
    id: string;
-   statusDefinitions: string[];
-   actionDefinitions: string[];
-   actionHandlerDefinitions: Record<string, ActionHandler>;
-   transitionDefinitions: Record<string, Record<string, string | string[]>>;
-   payloadDefinitions: Record<string, any>;
-   transitionSelectorDefinitions: Record<string, () => string>;
-   ctxDefinition: {
-      states?: Record<string, any>;
-      refs?: Record<string, any>;
-   };
-   initialStatusDefinition: {
+   status: string[];
+   actions: string[];
+   actionHandlers: Record<string, ActionHandler>;
+   transitions: Record<string, Record<string, string | string[]>>;
+   payloads?: Record<string, any>;
+   router?: Record<string, (ctx: Record<string, any>) => string>;
+   ctx: CtxMatter;
+   initialStatus: {
       status: string | ((ctx: Record<string, any>) => string);
-      options: { staticSetup: boolean; dynamicSetup: boolean };
+      options?: { staticSetup?: boolean; dynamicSetup?: boolean };
    };
-   options: {
+   options?: {
       onInvalidAction?: (action: string, status: string) => void;
       dynamicSetupCtx?: boolean;
       dynamicSetupActions?: boolean;
@@ -24,21 +22,8 @@ type MachineConfig = {
    };
 };
 
-type MachineApi = {
-   setup: any;
-   useStatus: any;
-   useAction: any;
-   useState: any;
-   useRef: any;
-   useFlag: any;
-};
+type MachineApi = Record<string, any>;
 
-type MachineHooks = {
-   useStatus: any;
-   useAction: any;
-   useState: any;
-   useRef: any;
-   useFlag: any;
-};
+type MachineHooks = Record<string, any>;
 
 export { MachineConfig, MachineApi, MachineHooks };

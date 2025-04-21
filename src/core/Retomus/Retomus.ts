@@ -1,74 +1,157 @@
-import { ValueCategories } from "../../common/types/Value";
-import { createCompositeActionApi } from "../CompositeAction";
-import CompositeAction from "../CompositeAction/CompositeAction";
-import { CompositeActionConfig } from "../CompositeAction/types";
-import { createCtxApi, SharedCtx } from "../Ctx";
-import { CtxApi } from "../Ctx/types";
-import { createMachineApi } from "../Machine";
-import Machine from "../Machine/Machine";
-import { MachineApi } from "../Machine/types";
-import RetomusCommandBus from "./RetomusCommandBus";
-import RetomusEventBus from "./RetomusEventBus";
+import {
+  ValueCategory,
+  ValueCategories,
+  ValueCategoryName,
+  CtxId,
+} from '../../common/types/Value';
+import { compileValuesRecordToMap } from '../../common/utils';
+import { createCompositeActionApi } from '../CompositeAction';
+import CompositeAction from '../CompositeAction/CompositeAction';
+import { CompositeActionConfig } from '../CompositeAction/types';
+import { createCtxApi, Ctx, SharedCtx } from '../Ctx';
+import { CtxApi, CtxMatter } from '../Ctx/types';
+import { createMachineApi } from '../Machine';
+import Machine from '../Machine/Machine';
+import { MachineApi } from '../Machine/types';
+import RetomusCommandBus from './RetomusCommandBus';
+import RetomusEventBus from './RetomusEventBus';
+import { useState, useRef } from 'react';
+
+const defaultValueCategories = new Map<ValueCategoryName, ValueCategory>([
+  [
+    'state',
+    {
+      id: 'state',
+      use: (initialValue: any) => {
+        const [state, setState] = useState(initialValue);
+        return [state, setState];
+      },
+      setterType: 'state',
+      valuePropName: null,
+    },
+  ],
+  [
+    'ref',
+    {
+      id: 'ref',
+      use: (initialValue: any) => {
+        const ref = useRef(initialValue);
+        return [
+          ref,
+          value => {
+            ref.current = value;
+          },
+        ];
+      },
+      setterType: 'ref',
+      valuePropName: 'current',
+    },
+  ],
+]);
+
+type RetomusConfig =
+  | {
+      valueCategories: ValueCategories;
+    }
+  | undefined;
+
+const defaultRetomusConfig: RetomusConfig = {
+  valueCategories: defaultValueCategories,
+};
+
+const createRetomus = (config: RetomusConfig = defaultRetomusConfig) =>
+  new Retomus(config);
+
+const createValueCategories = (valueCategories: ValueCategory[]) => {
+  return new Map(
+    valueCategories.map(valueCategory => [valueCategory.id, valueCategory]),
+  );
+};
+
+const createRetomusConfig = (
+  param: { valueCategories: ValueCategory[] } = { valueCategories: [] },
+) => {
+  return {
+    valueCategories: createValueCategories(param.valueCategories),
+  };
+};
 
 class Retomus {
-   machines: Map<string, any> = new Map<string, any>();
-   ctxs: Map<string, any> = new Map<string, any>();
-   stateBus: any;
-   customValueCategories: ValueCategories;
-   eventBus: RetomusEventBus;
-   commandBus: RetomusCommandBus;
+  machines: Map<string, any> = new Map<string, any>();
+  ctxs: Map<string, any> = new Map<string, any>();
+  stateBus: any;
+  eventBus: RetomusEventBus;
+  commandBus: RetomusCommandBus;
+  valueCategories: Map<string, ValueCategory> = defaultValueCategories;
 
-   constructor() {
-      this.eventBus = new RetomusEventBus();
-      this.commandBus = new RetomusCommandBus(this);
-   }
+  constructor(config: RetomusConfig) {
+    this.eventBus = new RetomusEventBus();
+    this.commandBus = new RetomusCommandBus(this);
+    if (config) {
+      if (config.valueCategories) {
+        config.valueCategories.forEach(valueCategory => {
+          this.registerValueCategory(valueCategory);
+        });
+      }
+    }
+  }
 
-   createMachine(config): MachineApi {
-      const machine = new Machine(config, this.eventBus, this.commandBus);
-      this.registerMachine(config.id, machine);
-      return createMachineApi(machine);
-   }
+  getValueCategories() {
+    return this.valueCategories;
+  }
 
-   createCtx(config): CtxApi {
-      const ctx = new SharedCtx(config.id, config.states, config.refs);
+  registerValueCategory(ctxValueCategory: ValueCategory) {
+    this.valueCategories.set(ctxValueCategory.id, ctxValueCategory);
+    console.log('this.valueCategories', this.valueCategories);
+  }
 
-      this.registerCtx(config.id, ctx);
-      return createCtxApi(ctx);
-   }
+  createMachine(config): MachineApi {
+    const machine = new Machine(
+      config,
+      this.eventBus,
+      this.commandBus,
+      this.valueCategories,
+    );
+    this.registerMachine(config.id, machine);
+    return createMachineApi(machine);
+  }
 
-   createCompositeAction(config: CompositeActionConfig) {
-      const compositeAction = new CompositeAction(config, this.eventBus);
-      return createCompositeActionApi(compositeAction);
-   }
+  createCtx(id: CtxId, values: CtxMatter, options = {}): CtxApi {
+    const valuesMap = compileValuesRecordToMap(values, id);
+    const ctx = new SharedCtx(id, valuesMap, this.valueCategories);
+    this.registerCtx(id, ctx);
+    return createCtxApi(ctx);
+  }
 
-   registerMachine(id: string, machine: any) {
-      this.machines.set(id, machine);
-   }
+  createCompositeAction(config: CompositeActionConfig) {
+    const compositeAction = new CompositeAction(config, this.eventBus);
+    return createCompositeActionApi(compositeAction);
+  }
 
-   registerCtx(id: string, ctx: any) {
-      this.ctxs.set(id, ctx);
-   }
+  registerMachine(id: string, machine: any) {
+    this.machines.set(id, machine);
+  }
 
-   getMachine(id: string) {
-      return this.machines.get(id);
-   }
+  registerCtx(id: string, ctx: any) {
+    this.ctxs.set(id, ctx);
+  }
 
-   getCtx(id: string) {
+  getMachine(id: string) {
+    return this.machines.get(id);
+  }
 
-      return this.ctxs.get(id);
-   }
+  getCtx(id: string): Ctx {
+    return this.ctxs.get(id);
+  }
 
-   deleteMachine(id: string) {
-      this.machines.delete(id);
-   }
+  deleteMachine(id: string) {
+    this.machines.delete(id);
+  }
 
-   deleteCtx(id: string) {
-      this.ctxs.delete(id);
-   }
-
-   addValueCategory(customValueCategories: ValueCategories) {
-      this.customValueCategories = customValueCategories;
-   }
+  deleteCtx(id: string) {
+    this.ctxs.delete(id);
+  }
 }
 
 export default Retomus;
+export { createRetomus, createRetomusConfig };
