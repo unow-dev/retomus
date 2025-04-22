@@ -41,7 +41,7 @@ class Ctx implements IMachineCtx {
       this.values = values;
 
       this.valueCategories = valueCategories;
-      console.log('values in Ctx', values);
+
       this.values.forEach((_, valueId) => {
          this.subscribers.set(valueId, new Set());
       });
@@ -76,7 +76,7 @@ class Ctx implements IMachineCtx {
    }
 
    setValue(key: ValueId, value: any) {
-      console.log('setValue in Ctx', key, value);
+
       this.values.set(key, value);
       this._notifySubscribers(key, value);
    }
@@ -116,7 +116,7 @@ class Ctx implements IMachineCtx {
             {},
             {
                get(target, prop: string) {
-                  console.log('prop', prop);
+
                   if (typeof prop === 'symbol') {
                      return target[prop];
                   }
@@ -142,7 +142,7 @@ class Ctx implements IMachineCtx {
             },
          );
       });
-      console.log('proxies', proxies);
+
       return proxies;
    }
 

@@ -50,7 +50,7 @@ class MergedCtx implements IMachineCtx {
    }
 
    setValue(key: ValueId, value: any) {
-      console.log('setValue in MergedCtx', key, value);
+
       const ctxId = this.valueIdAndCtxIdMap.get(key);
       if (ctxId === this.ownCtx.id) {
          return this.ownCtx.setValue(key, value);
@@ -112,7 +112,7 @@ class MergedCtx implements IMachineCtx {
    ) {
       const proxies = {};
       const getHandle = (target, prop, valueCategoryName) => {
-         console.log('prop', prop);
+
          if (typeof prop === 'symbol') {
             return target[prop];
          }
@@ -158,7 +158,7 @@ class MergedCtx implements IMachineCtx {
                },
             );
          });
-         console.log('proxies', proxies);
+
          return proxies;
       };
 
@@ -171,7 +171,7 @@ class MergedCtx implements IMachineCtx {
    _createValueProxiesReadOnly(mergedCtx: MergedCtx) {
       const proxies = {};
       const getHandle = (target, prop, valueCategoryName) => {
-         console.log('prop', prop);
+
          if (typeof prop === 'symbol') {
             return target[prop];
          }
@@ -202,7 +202,7 @@ class MergedCtx implements IMachineCtx {
             },
          );
       });
-      console.log('proxies', proxies);
+
       return proxies;
    }
 

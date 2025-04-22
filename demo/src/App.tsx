@@ -2,11 +2,11 @@ import { Routes, Route, BrowserRouter } from 'react-router-dom';
 import './App.css';
 import Sidebar from './components/Sidebar';
 import Counter from './components/counter/Counter';
-import Form from './components/counter/Form';
-import Fetcher from './components/counter/Fetcher';
+import Form from './components/form/Form';
+import Fetcher from './components/fetcher/Fetcher';
 import { RetomusWrapper } from '../../dist/index.mjs';
-import Modal from './components/counter/Modal';
-import Step from './components/counter/Step';
+import Modal from './components/modal/Modal';
+import Step from './components/step/Step';
 
 function App() {
   return (

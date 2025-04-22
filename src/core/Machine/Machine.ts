@@ -112,7 +112,7 @@ class Machine {
   }
 
   setValue(key: ValueId, value: any) {
-    console.log('setValue in Machine', key, value);
+
     this.ctx[this.typeBus.ctx]?.setValue(key, value);
   }
 
@@ -150,7 +150,7 @@ class Machine {
   }
 
   subscribeStatus(setStatus: React.Dispatch<React.SetStateAction<any>>) {
-    console.log('statusSubscribers', this.statusSubscribers);
+
     this.statusSubscribers.add(setStatus);
     return () => {
       this.statusSubscribers.delete(setStatus);
@@ -326,9 +326,9 @@ class Machine {
   }
 
   _validateAction(action: string) {
-    console.log('validateAction', action);
+
     const status = this.status;
-    console.log('status', status);
+
     if (status === DEFAULT_STATUS) {
       console.log(
         'Status is not set. Please set the status before executing an action.',
@@ -365,19 +365,19 @@ class Machine {
 
   _processTransitionSuccess(returnValues: any, action: string) {
     const nextStatus = this.config.transitions[this.status][action];
-    console.log('nextStatus', nextStatus);
+
     if (typeof nextStatus === 'string') {
       this._transitionStatus(nextStatus);
     } else {
       const router = this.config.router;
-      console.log('router', router);
+
       try {
         const routedStatus = router[action](
           this.ctx[this.typeBus.ctx].toReactiveRecord({ readonly: true }),
         );
         this._transitionStatus(routedStatus);
       } catch (error) {
-        console.log('error', error);
+
       }
     }
     return returnValues;
@@ -411,7 +411,7 @@ class Machine {
   }
 
   _transitionStatus(status: string) {
-    console.log('transitionStatus', status, this.statusSubscribers);
+
     this.status = status;
     this._notifyStatusSubscribers();
   }

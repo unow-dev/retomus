@@ -9,7 +9,7 @@ const valueHook =
    (hookProvider: Ctx | Machine, category: ValueCategory) => key => {
       const valueId = createValueId(key, category.id);
       const { refs } = useContext(RetomusWrapperContext);
-      console.log('refs in valueHook', refs);
+
       // setterType state: => value, ref: => ref
       // stateの場合、setStateを購読者としてセット
       // refの場合、(value)=>ref.current = value を購読者としてセット
@@ -71,7 +71,7 @@ const createValueHooks = (
    hookProvider: Ctx | Machine,
    valueCategories: ValueCategories,
 ): Record<string, any> => {
-   console.log('categories in createValueHooks', valueCategories);
+
    const hooks = {};
    valueCategories.forEach(category => {
       hooks[`use${withUpperCaseFirstLetter(category.id)}`] = valueHook(

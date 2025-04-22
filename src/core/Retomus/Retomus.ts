@@ -102,7 +102,7 @@ class Retomus {
 
   registerValueCategory(ctxValueCategory: ValueCategory) {
     this.valueCategories.set(ctxValueCategory.id, ctxValueCategory);
-    console.log('this.valueCategories', this.valueCategories);
+
   }
 
   createMachine(config): MachineApi {
