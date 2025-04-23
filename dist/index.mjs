@@ -241,7 +241,6 @@ var Ctx = class {
     this.id = id;
     this.values = values;
     this.valueCategories = valueCategories;
-    console.log("values in Ctx", values);
     this.values.forEach((_, valueId) => {
       this.subscribers.set(valueId, /* @__PURE__ */ new Set());
     });
@@ -268,7 +267,6 @@ var Ctx = class {
     }
   }
   setValue(key, value) {
-    console.log("setValue in Ctx", key, value);
     this.values.set(key, value);
     this._notifySubscribers(key, value);
   }
@@ -283,12 +281,6 @@ var Ctx = class {
       this.subscribers.set(key, /* @__PURE__ */ new Set());
     }
     this.subscribers.get(key)?.add(setValue);
-    console.log(
-      "this.subscribers.get(key)",
-      this.subscribers.get(key),
-      key,
-      setValue
-    );
     return () => {
       this.subscribers.get(key)?.delete(setValue);
     };
@@ -303,7 +295,6 @@ var Ctx = class {
         {},
         {
           get(target, prop) {
-            console.log("prop", prop);
             if (typeof prop === "symbol") {
               return target[prop];
             }
@@ -329,7 +320,6 @@ var Ctx = class {
         }
       );
     });
-    console.log("proxies", proxies);
     return proxies;
   }
   toReactiveRecord(options = { readonly: false }) {
@@ -342,13 +332,6 @@ var Ctx = class {
     this.subscribers.get(valueId)?.forEach((setState) => {
       setState(value);
     });
-    console.log(
-      "this.subscribers.get(valueId) in _notifySubscribers",
-      this.subscribers.get(valueId),
-      value,
-      valueId,
-      `ctxId ${this.id}`
-    );
   }
 };
 var Ctx_default = Ctx;
@@ -372,12 +355,7 @@ var RetomusWrapper_default = RetomusWrapper;
 var valueHook = (hookProvider, category) => (key) => {
   const valueId = createValueId(key, category.id);
   const { refs } = useContext(RetomusWrapperContext);
-  console.log("refs in valueHook", refs);
   const [value, setValue] = category.use(hookProvider.getValue(valueId));
-  console.log(
-    "value and setValue in valueHook",
-    `value: ${value}, setValue: ${setValue}, valueId: ${valueId}, category: ${category.id}, hookProvider: ${hookProvider.id}`
-  );
   useEffect2(() => {
     let target = refs.current;
     const unsubscribe = (() => {
@@ -418,7 +396,6 @@ var valueHook = (hookProvider, category) => (key) => {
   return category.setterType === "state" ? value : refs.current.get(category.id)?.get(valueId) || value;
 };
 var createValueHooks = (hookProvider, valueCategories) => {
-  console.log("categories in createValueHooks", valueCategories);
   const hooks = {};
   valueCategories.forEach((category) => {
     hooks[`use${withUpperCaseFirstLetter(category.id)}`] = valueHook(
@@ -473,7 +450,6 @@ var MergedCtx = class {
     return this.valueIdAndCtxIdMap.get(valueId);
   }
   setValue(key, value) {
-    console.log("setValue in MergedCtx", key, value);
     const ctxId = this.valueIdAndCtxIdMap.get(key);
     if (ctxId === this.ownCtx.id) {
       return this.ownCtx.setValue(key, value);
@@ -524,7 +500,6 @@ var MergedCtx = class {
   }) {
     const proxies = {};
     const getHandle = (target, prop, valueCategoryName) => {
-      console.log("prop", prop);
       if (typeof prop === "symbol") {
         return target[prop];
       }
@@ -570,7 +545,6 @@ var MergedCtx = class {
           }
         );
       });
-      console.log("proxies", proxies2);
       return proxies2;
     };
     return createProxies(
@@ -581,7 +555,6 @@ var MergedCtx = class {
   _createValueProxiesReadOnly(mergedCtx) {
     const proxies = {};
     const getHandle = (target, prop, valueCategoryName) => {
-      console.log("prop", prop);
       if (typeof prop === "symbol") {
         return target[prop];
       }
@@ -612,7 +585,6 @@ var MergedCtx = class {
         }
       );
     });
-    console.log("proxies", proxies);
     return proxies;
   }
   toRecord() {
@@ -659,8 +631,6 @@ var DEFAULT_STATUS = Symbol("default");
 
 // src/core/Machine/hooks.ts
 var createMachineValueHooks = (machine, categories) => {
-  console.log("machine", machine);
-  console.log("categories", categories);
   return createValueHooks(machine, categories);
 };
 
@@ -711,7 +681,6 @@ var Machine = class {
     return this.ctx[this.typeBus.ctx]?.getCtxIdByValueId(valueId);
   }
   setValue(key, value) {
-    console.log("setValue in Machine", key, value);
     this.ctx[this.typeBus.ctx]?.setValue(key, value);
   }
   getValue(key) {
@@ -742,7 +711,6 @@ var Machine = class {
     }
   }
   subscribeStatus(setStatus) {
-    console.log("statusSubscribers", this.statusSubscribers);
     this.statusSubscribers.add(setStatus);
     return () => {
       this.statusSubscribers.delete(setStatus);
@@ -861,13 +829,6 @@ var Machine = class {
     }
   }
   async _executeAction(action, payload) {
-    console.log(
-      "executeAction in machine",
-      action,
-      payload,
-      this.flagBus.isReadyActions,
-      this._validateAction(action)
-    );
     if (this.flagBus.isReadyActions === false) return;
     if (this._validateAction(action) === false) return;
     const handler = this.actionHandlers.get(action);
@@ -897,25 +858,14 @@ var Machine = class {
     });
   }
   _validateAction(action) {
-    console.log("validateAction", action);
     const status = this.status;
-    console.log("status", status);
     if (status === DEFAULT_STATUS) {
-      console.log(
-        "Status is not set. Please set the status before executing an action."
-      );
       return false;
     }
     if (!this.config.actions.includes(action)) {
-      console.log(
-        "Action is not defined. Please define the action before executing it."
-      );
       return false;
     }
     if (!this.config.transitions[status][action]) {
-      console.log(
-        "Transition is not defined. Please define the transition before executing it."
-      );
       return false;
     }
     return true;
@@ -930,19 +880,16 @@ var Machine = class {
   }
   _processTransitionSuccess(returnValues, action) {
     const nextStatus = this.config.transitions[this.status][action];
-    console.log("nextStatus", nextStatus);
     if (typeof nextStatus === "string") {
       this._transitionStatus(nextStatus);
     } else {
       const router = this.config.router;
-      console.log("router", router);
       try {
         const routedStatus = router[action](
           this.ctx[this.typeBus.ctx].toReactiveRecord({ readonly: true })
         );
         this._transitionStatus(routedStatus);
       } catch (error) {
-        console.log("error", error);
       }
     }
     return returnValues;
@@ -971,7 +918,6 @@ var Machine = class {
     });
   }
   _transitionStatus(status) {
-    console.log("transitionStatus", status, this.statusSubscribers);
     this.status = status;
     this._notifyStatusSubscribers();
   }
@@ -1131,7 +1077,6 @@ var Retomus = class {
   }
   registerValueCategory(ctxValueCategory) {
     this.valueCategories.set(ctxValueCategory.id, ctxValueCategory);
-    console.log("this.valueCategories", this.valueCategories);
   }
   createMachine(config) {
     const machine = new Machine_default(

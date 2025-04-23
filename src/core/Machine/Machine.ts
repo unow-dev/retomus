@@ -286,13 +286,6 @@ class Machine {
   }
 
   async _executeAction(action: string, payload: any) {
-    console.log(
-      'executeAction in machine',
-      action,
-      payload,
-      this.flagBus.isReadyActions,
-      this._validateAction(action),
-    );
     if (this.flagBus.isReadyActions === false) return;
     if (this._validateAction(action) === false) return;
 
@@ -330,25 +323,16 @@ class Machine {
     const status = this.status;
 
     if (status === DEFAULT_STATUS) {
-      console.log(
-        'Status is not set. Please set the status before executing an action.',
-      );
       return false;
     }
     if (!this.config.actions.includes(action)) {
       // throw new Error(`Action "${action}" is not defined.`);
-      console.log(
-        'Action is not defined. Please define the action before executing it.',
-      );
       return false;
     }
     if (!this.config.transitions[status][action]) {
       // throw new Error(
       //    `Transition "${status}" to "${action}" is not defined.`,
       // );
-      console.log(
-        'Transition is not defined. Please define the transition before executing it.',
-      );
       return false;
     }
     return true;

@@ -14,10 +14,6 @@ const valueHook =
       // stateの場合、setStateを購読者としてセット
       // refの場合、(value)=>ref.current = value を購読者としてセット
       const [value, setValue] = category.use(hookProvider.getValue(valueId));
-      console.log(
-         'value and setValue in valueHook',
-         `value: ${value}, setValue: ${setValue}, valueId: ${valueId}, category: ${category.id}, hookProvider: ${hookProvider.id}`,
-      );
 
       useEffect(() => {
          let target = refs.current; // target-map

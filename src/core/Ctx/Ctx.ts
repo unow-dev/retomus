@@ -94,12 +94,6 @@ class Ctx implements IMachineCtx {
          this.subscribers.set(key, new Set());
       }
       this.subscribers.get(key)?.add(setValue);
-      console.log(
-         'this.subscribers.get(key)',
-         this.subscribers.get(key),
-         key,
-         setValue,
-      );
       return () => {
          this.subscribers.get(key)?.delete(setValue);
       };
@@ -157,13 +151,6 @@ class Ctx implements IMachineCtx {
       this.subscribers.get(valueId)?.forEach(setState => {
          setState(value);
       });
-      console.log(
-         'this.subscribers.get(valueId) in _notifySubscribers',
-         this.subscribers.get(valueId),
-         value,
-         valueId,
-         `ctxId ${this.id}`,
-      );
    }
 }
 

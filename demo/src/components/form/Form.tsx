@@ -34,7 +34,6 @@ const formMachine = retomus.createMachine(
       update: ({ ctx, payload, done }) => {
         const { value, field } = payload;
         ctx.state[field] = value;
-        console.log('update action', payload, ctx.state.name, ctx.state.email);
         ctx.state.isValid =
           ctx.state.name.length > 0 && ctx.state.email.includes('@');
         done();
