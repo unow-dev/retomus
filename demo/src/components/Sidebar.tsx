@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 function Sidebar() {
   return (
-    <div className='w-64 h-screen bg-gray-800 text-white flex flex-col p-4 space-y-4'>
+    <div className='w-full h-screen bg-gray-800 text-white flex flex-col p-4 space-y-4'>
       <Link to='/counter' className='hover:bg-gray-700 p-2 rounded'>
         Counter
       </Link>
@@ -17,6 +17,9 @@ function Sidebar() {
       </Link>
       <Link to='/step' className='hover:bg-gray-700 p-2 rounded'>
         Step
+      </Link>
+      <Link to='/action-logger' className='hover:bg-gray-700 p-2 rounded'>
+        Action Logger
       </Link>
     </div>
   );

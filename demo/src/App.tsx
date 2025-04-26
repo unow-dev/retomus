@@ -7,17 +7,18 @@ import Fetcher from './components/fetcher/Fetcher';
 import { RetomusWrapper } from '../../dist/index.mjs';
 import Modal from './components/modal/Modal';
 import Step from './components/step/Step';
+import ActionLogger from './components/actionLogger/ActionLogger';
 
 function App() {
   return (
     <RetomusWrapper>
       <BrowserRouter>
-        <div className='grid grid-cols-[300px_minmax(900px,_1fr)] w-full'>
-          <div className='bg-gray-800 text-white p-4'>
+        <div className='grid grid-cols-12 w-full'>
+          <div className='bg-gray-800 text-white p-4 col-span-2'>
             <Sidebar />
           </div>
 
-          <main className='bg-gray-900 flex-col justify-center items-center flex'>
+          <main className='bg-gray-900 flex-col justify-center items-center flex col-span-10'>
             <Routes>
               <Route path='/' element={<Counter />} />
               <Route path='/counter' element={<Counter />} />
@@ -25,6 +26,7 @@ function App() {
               <Route path='/fetcher' element={<Fetcher />} />
               <Route path='/modal' element={<Modal />} />
               <Route path='/step' element={<Step />} />
+              <Route path='/action-logger' element={<ActionLogger />} />
             </Routes>
           </main>
         </div>
