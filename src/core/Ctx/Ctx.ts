@@ -110,7 +110,6 @@ class Ctx implements IMachineCtx {
             {},
             {
                get(target, prop: string) {
-
                   if (typeof prop === 'symbol') {
                      return target[prop];
                   }

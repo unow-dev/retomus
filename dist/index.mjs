@@ -117,7 +117,7 @@ var CompositeAction = class {
     this.id = config.id;
     this.resultBus = {};
     this.retomusEventBus = retomusEventBus;
-    this._processActionFlowMatters(config.actions);
+    this._processActionFlowMatters(config.action);
     if (config?.options && config?.options?.concurrency) {
       this.concurrency = config.options.concurrency;
     }
@@ -367,19 +367,20 @@ var valueHook = (hookProvider, category) => (key) => {
           const ctxIdOfValueId = hookProvider.getCtxIdByValueId(valueId);
           if (!target.has(ctxIdOfValueId)) {
             target.set(ctxIdOfValueId, /* @__PURE__ */ new Map());
-            target = target.get(ctxIdOfValueId);
           }
+          target = target.get(ctxIdOfValueId);
           if (!target.has(category.id)) {
             target.set(category.id, /* @__PURE__ */ new Map());
-            target = target.get(category.id);
           }
-          if (target.has(valueId)) {
+          target = target.get(category.id);
+          if (target.has(valueId) && target.get(valueId) !== value) {
             setValue(null);
             return null;
+          } else {
+            target.set(valueId, value);
+            hookProvider.setValue(valueId, value[category.valuePropName]);
+            return hookProvider.subscribe(valueId, setValue);
           }
-          target.set(valueId, value);
-          hookProvider.setValue(valueId, value);
-          return hookProvider.subscribe(valueId, setValue);
         default:
           console.error(
             `Invalid setterType: ${category.setterType} for category: ${category.id} in machine: ${hookProvider.id}`
@@ -391,8 +392,11 @@ var valueHook = (hookProvider, category) => (key) => {
       if (unsubscribe) {
         unsubscribe();
       }
+      if (category.setterType === "ref") {
+        target.delete(valueId);
+      }
     };
-  }, []);
+  }, [setValue]);
   return category.setterType === "state" ? value : refs.current.get(category.id)?.get(valueId) || value;
 };
 var createValueHooks = (hookProvider, valueCategories) => {

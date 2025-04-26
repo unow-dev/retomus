@@ -38,7 +38,7 @@ export class CompositeAction implements ICompositeAction {
       this.resultBus = {};
       this.retomusEventBus = retomusEventBus;
 
-      this._processActionFlowMatters(config.actions);
+      this._processActionFlowMatters(config.action);
 
       if (config?.options && config?.options?.concurrency) {
          this.concurrency = config.options.concurrency;

@@ -3,7 +3,7 @@ import { ActionHandler } from "../../common/types/Action";
 
 type CompositeActionConfig = {
    id: string;
-   actions: ActionFlow;
+   action: ActionFlow;
    options?: {
       concurrency?: number
    }

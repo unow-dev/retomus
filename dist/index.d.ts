@@ -17,7 +17,7 @@ type ActionHandler = ({ ctx, payload, done, error }: {
 
 type CompositeActionConfig = {
     id: string;
-    actions: ActionFlow;
+    action: ActionFlow;
     options?: {
         concurrency?: number;
     };
