@@ -382,48 +382,66 @@ var RetomusWrapper_default = RetomusWrapper;
 
 // src/common/hooks/index.ts
 var valueHook = (hookProvider, category) => (key) => {
+  console.log("key", key);
+  console.log("hookProvider", hookProvider);
+  console.log("category", category);
+  console.log("category.id", category.id);
+  console.log("category.use", category.use);
+  console.log("category.setterType", category.setterType);
   const valueId = createValueId(key, category.id);
+  console.log("valueId", valueId);
   const { refs } = (0, import_react3.useContext)(RetomusWrapperContext);
+  console.log("refs that in RetomusWrapperContext", refs);
   const ctxIdOfValueId = hookProvider.getCtxIdByValueId(valueId);
   const [value, setValue] = category.use(hookProvider.getValue(valueId));
   const unsubscribeRef = (0, import_react3.useRef)(null);
-  let target = refs.current;
-  switch (category.setterType) {
-    case "state":
+  const initializedRef = (0, import_react3.useRef)(false);
+  (0, import_react3.useEffect)(() => {
+    if (category.setterType === "state") {
       hookProvider.setValue(valueId, value);
       unsubscribeRef.current = hookProvider.subscribe(valueId, setValue);
-      break;
-    case "ref":
-      if (!target.has(ctxIdOfValueId)) {
-        target.set(ctxIdOfValueId, /* @__PURE__ */ new Map());
+    }
+  }, [setValue, valueId, value]);
+  const target = (0, import_react3.useRef)(refs.current);
+  console.log("target at start of useEffect", target);
+  (0, import_react3.useEffect)(() => {
+    if (category.setterType === "ref" && !initializedRef.current) {
+      if (!target.current.has(ctxIdOfValueId)) {
+        target.current.set(ctxIdOfValueId, /* @__PURE__ */ new Map());
       }
-      target = target.get(ctxIdOfValueId);
-      if (!target.has(category.id)) {
-        target.set(category.id, /* @__PURE__ */ new Map());
+      target.current = target.current.get(ctxIdOfValueId);
+      if (!target.current.has(category.id)) {
+        target.current.set(category.id, /* @__PURE__ */ new Map());
       }
-      target = target.get(category.id);
-      if (target.has(valueId) && target.get(valueId) !== value) {
+      target.current = target.current.get(category.id);
+      if (target.current.has(valueId)) {
         setValue(null);
-        break;
+        initializedRef.current = true;
       } else {
-        target.set(valueId, value);
+        console.log("target before set", target.current);
+        target.current.set(valueId, value);
         hookProvider.setValue(valueId, value[category.valuePropName]);
         unsubscribeRef.current = hookProvider.subscribe(valueId, setValue);
+        initializedRef.current = true;
       }
-      break;
-    default:
-      console.error(
-        `Invalid setterType: ${category.setterType} for category: ${category.id} in machine: ${hookProvider.id}`
-      );
-  }
+    }
+  }, []);
+  (0, import_react3.useEffect)(() => {
+    if (category.setterType === "ref") {
+      unsubscribeRef.current = hookProvider.subscribe(valueId, setValue);
+    }
+  }, [setValue]);
   (0, import_react3.useEffect)(() => {
     return () => {
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current();
+      if (category.setterType === "state") {
+        if (unsubscribeRef.current) {
+          unsubscribeRef.current();
+        }
       }
     };
   }, []);
-  return category.setterType === "state" ? value : target.get(valueId);
+  console.log("target at end", target.current);
+  return category.setterType === "state" ? value : refs.current?.get(ctxIdOfValueId)?.get(category.id)?.get(valueId) || value;
 };
 var createValueHooks = (hookProvider, valueCategories) => {
   const hooks = {};
