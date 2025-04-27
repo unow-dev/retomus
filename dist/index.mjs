@@ -337,7 +337,7 @@ var Ctx = class {
 var Ctx_default = Ctx;
 
 // src/common/hooks/index.ts
-import { useContext, useEffect as useEffect2 } from "react";
+import { useContext, useEffect as useEffect2, useRef as useRef2 } from "react";
 
 // src/react/RetomusWrapper.tsx
 import { createContext, useRef } from "react";
@@ -355,49 +355,46 @@ var RetomusWrapper_default = RetomusWrapper;
 var valueHook = (hookProvider, category) => (key) => {
   const valueId = createValueId(key, category.id);
   const { refs } = useContext(RetomusWrapperContext);
+  const ctxIdOfValueId = hookProvider.getCtxIdByValueId(valueId);
   const [value, setValue] = category.use(hookProvider.getValue(valueId));
+  const unsubscribeRef = useRef2(null);
+  let target = refs.current;
+  switch (category.setterType) {
+    case "state":
+      hookProvider.setValue(valueId, value);
+      unsubscribeRef.current = hookProvider.subscribe(valueId, setValue);
+      break;
+    case "ref":
+      if (!target.has(ctxIdOfValueId)) {
+        target.set(ctxIdOfValueId, /* @__PURE__ */ new Map());
+      }
+      target = target.get(ctxIdOfValueId);
+      if (!target.has(category.id)) {
+        target.set(category.id, /* @__PURE__ */ new Map());
+      }
+      target = target.get(category.id);
+      if (target.has(valueId) && target.get(valueId) !== value) {
+        setValue(null);
+        break;
+      } else {
+        target.set(valueId, value);
+        hookProvider.setValue(valueId, value[category.valuePropName]);
+        unsubscribeRef.current = hookProvider.subscribe(valueId, setValue);
+      }
+      break;
+    default:
+      console.error(
+        `Invalid setterType: ${category.setterType} for category: ${category.id} in machine: ${hookProvider.id}`
+      );
+  }
   useEffect2(() => {
-    let target = refs.current;
-    const unsubscribe = (() => {
-      switch (category.setterType) {
-        case "state":
-          hookProvider.setValue(valueId, value);
-          return hookProvider.subscribe(valueId, setValue);
-        case "ref":
-          const ctxIdOfValueId = hookProvider.getCtxIdByValueId(valueId);
-          if (!target.has(ctxIdOfValueId)) {
-            target.set(ctxIdOfValueId, /* @__PURE__ */ new Map());
-          }
-          target = target.get(ctxIdOfValueId);
-          if (!target.has(category.id)) {
-            target.set(category.id, /* @__PURE__ */ new Map());
-          }
-          target = target.get(category.id);
-          if (target.has(valueId) && target.get(valueId) !== value) {
-            setValue(null);
-            return null;
-          } else {
-            target.set(valueId, value);
-            hookProvider.setValue(valueId, value[category.valuePropName]);
-            return hookProvider.subscribe(valueId, setValue);
-          }
-        default:
-          console.error(
-            `Invalid setterType: ${category.setterType} for category: ${category.id} in machine: ${hookProvider.id}`
-          );
-          return null;
-      }
-    })();
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-      if (category.setterType === "ref") {
-        target.delete(valueId);
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
       }
     };
-  }, [setValue]);
-  return category.setterType === "state" ? value : refs.current.get(category.id)?.get(valueId) || value;
+  }, []);
+  return category.setterType === "state" ? value : target.get(valueId);
 };
 var createValueHooks = (hookProvider, valueCategories) => {
   const hooks = {};
@@ -625,7 +622,7 @@ var createCtxApi = (ctx) => {
 
 // src/core/Machine/Machine.ts
 import {
-  useState as useState3,
+  useState as useState2,
   useEffect as useEffect3,
   useCallback
 } from "react";
@@ -726,7 +723,7 @@ var Machine = class {
   // --- hooks ---
   createHooks() {
     const useMachineStatusIn = (machine) => () => {
-      const [status, setStatus] = useState3(machine.status);
+      const [status, setStatus] = useState2(machine.status);
       const subscribeStatus = useCallback(
         () => machine.subscribeStatus(setStatus),
         [setStatus]
@@ -741,7 +738,7 @@ var Machine = class {
       return (payload) => machine._executeAction(key, payload);
     };
     const useMachineFlagIn = (machine) => (key) => {
-      const [flag, setFlag] = useState3(machine.flagBus[key]);
+      const [flag, setFlag] = useState2(machine.flagBus[key]);
       const subscribeFlag = useCallback(
         () => machine._subscribeFlag(key, setFlag),
         [setFlag]
@@ -1015,14 +1012,14 @@ var RetomusEventBus = class {
 var RetomusEventBus_default = RetomusEventBus;
 
 // src/core/Retomus/Retomus.ts
-import { useState as useState4, useRef as useRef3 } from "react";
+import { useState as useState3, useRef as useRef4 } from "react";
 var defaultValueCategories = /* @__PURE__ */ new Map([
   [
     "state",
     {
       id: "state",
       use: (initialValue) => {
-        const [state, setState] = useState4(initialValue);
+        const [state, setState] = useState3(initialValue);
         return [state, setState];
       },
       setterType: "state",
@@ -1034,7 +1031,7 @@ var defaultValueCategories = /* @__PURE__ */ new Map([
     {
       id: "ref",
       use: (initialValue) => {
-        const ref = useRef3(initialValue);
+        const ref = useRef4(initialValue);
         return [
           ref,
           (value) => {

@@ -384,49 +384,46 @@ var RetomusWrapper_default = RetomusWrapper;
 var valueHook = (hookProvider, category) => (key) => {
   const valueId = createValueId(key, category.id);
   const { refs } = (0, import_react3.useContext)(RetomusWrapperContext);
+  const ctxIdOfValueId = hookProvider.getCtxIdByValueId(valueId);
   const [value, setValue] = category.use(hookProvider.getValue(valueId));
+  const unsubscribeRef = (0, import_react3.useRef)(null);
+  let target = refs.current;
+  switch (category.setterType) {
+    case "state":
+      hookProvider.setValue(valueId, value);
+      unsubscribeRef.current = hookProvider.subscribe(valueId, setValue);
+      break;
+    case "ref":
+      if (!target.has(ctxIdOfValueId)) {
+        target.set(ctxIdOfValueId, /* @__PURE__ */ new Map());
+      }
+      target = target.get(ctxIdOfValueId);
+      if (!target.has(category.id)) {
+        target.set(category.id, /* @__PURE__ */ new Map());
+      }
+      target = target.get(category.id);
+      if (target.has(valueId) && target.get(valueId) !== value) {
+        setValue(null);
+        break;
+      } else {
+        target.set(valueId, value);
+        hookProvider.setValue(valueId, value[category.valuePropName]);
+        unsubscribeRef.current = hookProvider.subscribe(valueId, setValue);
+      }
+      break;
+    default:
+      console.error(
+        `Invalid setterType: ${category.setterType} for category: ${category.id} in machine: ${hookProvider.id}`
+      );
+  }
   (0, import_react3.useEffect)(() => {
-    let target = refs.current;
-    const unsubscribe = (() => {
-      switch (category.setterType) {
-        case "state":
-          hookProvider.setValue(valueId, value);
-          return hookProvider.subscribe(valueId, setValue);
-        case "ref":
-          const ctxIdOfValueId = hookProvider.getCtxIdByValueId(valueId);
-          if (!target.has(ctxIdOfValueId)) {
-            target.set(ctxIdOfValueId, /* @__PURE__ */ new Map());
-          }
-          target = target.get(ctxIdOfValueId);
-          if (!target.has(category.id)) {
-            target.set(category.id, /* @__PURE__ */ new Map());
-          }
-          target = target.get(category.id);
-          if (target.has(valueId) && target.get(valueId) !== value) {
-            setValue(null);
-            return null;
-          } else {
-            target.set(valueId, value);
-            hookProvider.setValue(valueId, value[category.valuePropName]);
-            return hookProvider.subscribe(valueId, setValue);
-          }
-        default:
-          console.error(
-            `Invalid setterType: ${category.setterType} for category: ${category.id} in machine: ${hookProvider.id}`
-          );
-          return null;
-      }
-    })();
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-      if (category.setterType === "ref") {
-        target.delete(valueId);
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
       }
     };
-  }, [setValue]);
-  return category.setterType === "state" ? value : refs.current.get(category.id)?.get(valueId) || value;
+  }, []);
+  return category.setterType === "state" ? value : target.get(valueId);
 };
 var createValueHooks = (hookProvider, valueCategories) => {
   const hooks = {};
