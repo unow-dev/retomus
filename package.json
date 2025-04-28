@@ -1,6 +1,6 @@
 {
   "name": "retomus",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A machine-based state management library for React, separating logic from UI.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
