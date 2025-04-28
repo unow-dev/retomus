@@ -14,16 +14,8 @@ import { Value, ValueCategories, ValueCategory } from '../types/Value';
 
 const valueHook =
   (hookProvider: Ctx | Machine, category: ValueCategory) => key => {
-    console.log('key', key);
-    console.log('hookProvider', hookProvider);
-    console.log('category', category);
-    console.log('category.id', category.id);
-    console.log('category.use', category.use);
-    console.log('category.setterType', category.setterType);
     const valueId = createValueId(key, category.id);
-    console.log('valueId', valueId);
     const { refs } = useContext(RetomusWrapperContext);
-    console.log('refs that in RetomusWrapperContext', refs);
     const ctxIdOfValueId = hookProvider.getCtxIdByValueId(valueId);
 
     // setterType state: => value, ref: => ref
@@ -41,7 +33,6 @@ const valueHook =
     }, [setValue, valueId, value]);
 
     const target = useRef(refs.current); // target-map
-    console.log('target at start of useEffect', target);
     useEffect(() => {
       if (category.setterType === 'ref' && !initializedRef.current) {
         if (!target.current.has(ctxIdOfValueId)) {
@@ -56,13 +47,10 @@ const valueHook =
         if (target.current.has(valueId)) {
           // existed ref in react context
           // dispose a new ref
-          // setValue(target.get(valueId)[category.valuePropName]);
-          // unsubscribeRef.current = hookProvider.subscribe(valueId, setValue);
           setValue(null);
           initializedRef.current = true;
         } else {
           // set new ref in react context
-          console.log('target before set', target.current);
           target.current.set(valueId, value);
           // set in machine, and subscribe in machine
           hookProvider.setValue(valueId, value[category.valuePropName]);
@@ -96,8 +84,6 @@ const valueHook =
         // }
       };
     }, []);
-
-    console.log('target at end', target.current);
 
     return category.setterType === 'state'
       ? value
