@@ -21,6 +21,9 @@ function Sidebar() {
       <Link to='/action-logger' className='hover:bg-gray-700 p-2 rounded'>
         Action Logger
       </Link>
+      <Link to='/global-store' className='hover:bg-gray-700 p-2 rounded'>
+        Global Store
+      </Link>
     </div>
   );
 }

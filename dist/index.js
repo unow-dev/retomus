@@ -382,16 +382,8 @@ var RetomusWrapper_default = RetomusWrapper;
 
 // src/common/hooks/index.ts
 var valueHook = (hookProvider, category) => (key) => {
-  console.log("key", key);
-  console.log("hookProvider", hookProvider);
-  console.log("category", category);
-  console.log("category.id", category.id);
-  console.log("category.use", category.use);
-  console.log("category.setterType", category.setterType);
   const valueId = createValueId(key, category.id);
-  console.log("valueId", valueId);
   const { refs } = (0, import_react3.useContext)(RetomusWrapperContext);
-  console.log("refs that in RetomusWrapperContext", refs);
   const ctxIdOfValueId = hookProvider.getCtxIdByValueId(valueId);
   const [value, setValue] = category.use(hookProvider.getValue(valueId));
   const unsubscribeRef = (0, import_react3.useRef)(null);
@@ -403,7 +395,6 @@ var valueHook = (hookProvider, category) => (key) => {
     }
   }, [setValue, valueId, value]);
   const target = (0, import_react3.useRef)(refs.current);
-  console.log("target at start of useEffect", target);
   (0, import_react3.useEffect)(() => {
     if (category.setterType === "ref" && !initializedRef.current) {
       if (!target.current.has(ctxIdOfValueId)) {
@@ -418,7 +409,6 @@ var valueHook = (hookProvider, category) => (key) => {
         setValue(null);
         initializedRef.current = true;
       } else {
-        console.log("target before set", target.current);
         target.current.set(valueId, value);
         hookProvider.setValue(valueId, value[category.valuePropName]);
         unsubscribeRef.current = hookProvider.subscribe(valueId, setValue);
@@ -440,7 +430,6 @@ var valueHook = (hookProvider, category) => (key) => {
       }
     };
   }, []);
-  console.log("target at end", target.current);
   return category.setterType === "state" ? value : refs.current?.get(ctxIdOfValueId)?.get(category.id)?.get(valueId) || value;
 };
 var createValueHooks = (hookProvider, valueCategories) => {
@@ -553,16 +542,20 @@ var MergedCtx = class {
       }
       const valueId = createValueId(prop, valueCategoryName);
       const ctxId = mergedCtx.valueIdAndCtxIdMap.get(valueId);
+      console.log(ctxId);
+      console.log(mergedCtx.valueIdAndCtxIdMap);
       if (!ctxId) {
         return target[prop];
       } else {
         const ctx = mergedCtx.ctxs.get(ctxId);
+        console.log(mergedCtx.ctxs);
+        console.log(ctx);
         if (ctx.values.has(valueId)) {
           return ctx.getValue(valueId);
         }
       }
     };
-    const setHandle = (prop, value, valueCategoryName) => {
+    const setHandle = (target, prop, value, valueCategoryName) => {
       const valueId = createValueId(prop, valueCategoryName);
       const ctxId = mergedCtx.valueIdAndCtxIdMap.get(valueId);
       if (!ctxId) {

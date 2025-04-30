@@ -53,13 +53,14 @@ export const ActionLogger = () => {
   }, [isReady, logsRef]);
 
   return (
-    <div>
+    <div className='flex flex-col space-y-4'>
       <h2>Action Logger</h2>
-
-      <button onClick={() => handleClick('clickA')}>Button A</button>
-      <button onClick={() => handleClick('clickB')}>Button B</button>
-      <button onClick={() => clearLogs({})}>Clear Logs</button>
-      <button onClick={handleConsoleLogs}>Console Logs</button>
+      <div className='flex space-x-4'>
+        <button onClick={() => handleClick('clickA')}>Button A</button>
+        <button onClick={() => handleClick('clickB')}>Button B</button>
+        <button onClick={() => clearLogs({})}>Clear Logs</button>
+        <button onClick={handleConsoleLogs}>Console Logs</button>
+      </div>
 
       <h3>Logs:</h3>
       <ul>

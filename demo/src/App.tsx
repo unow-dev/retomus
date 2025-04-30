@@ -8,6 +8,7 @@ import { RetomusWrapper } from '../../dist/index.mjs';
 import Modal from './components/modal/Modal';
 import Step from './components/step/Step';
 import ActionLogger from './components/actionLogger/ActionLogger';
+import GlobalStore from './components/globalStore/GlobalStore';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
               <Route path='/modal' element={<Modal />} />
               <Route path='/step' element={<Step />} />
               <Route path='/action-logger' element={<ActionLogger />} />
+              <Route path='/global-store' element={<GlobalStore />} />
             </Routes>
           </main>
         </div>

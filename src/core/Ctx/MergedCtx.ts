@@ -118,16 +118,20 @@ class MergedCtx implements IMachineCtx {
          }
          const valueId = createValueId(prop, valueCategoryName);
          const ctxId = mergedCtx.valueIdAndCtxIdMap.get(valueId);
+         console.log(ctxId);
+         console.log(mergedCtx.valueIdAndCtxIdMap);
          if (!ctxId) {
             return target[prop];
          } else {
             const ctx = mergedCtx.ctxs.get(ctxId);
+            console.log(mergedCtx.ctxs);
+            console.log(ctx);
             if (ctx.values.has(valueId)) {
                return ctx.getValue(valueId);
             }
          }
       };
-      const setHandle = (prop, value, valueCategoryName) => {
+      const setHandle = (target, prop, value, valueCategoryName) => {
          const valueId = createValueId(prop, valueCategoryName);
          const ctxId = mergedCtx.valueIdAndCtxIdMap.get(valueId);
          if (!ctxId) {
