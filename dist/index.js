@@ -654,8 +654,7 @@ var createCtxApi = (ctx) => {
     setup: ({ ctx: ctx2, options }) => {
       ctx2.dynamicSetup(ctx2, options);
     },
-    useState: hooks.useState,
-    useRef: hooks.useRef,
+    ...hooks,
     useFlag: hooks.useFlag
   };
 };

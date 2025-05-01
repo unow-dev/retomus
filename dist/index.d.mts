@@ -67,8 +67,6 @@ interface IMachineCtx {
 }
 type CtxApi = {
     setup: any;
-    useState: any;
-    useRef: any;
     useFlag: any;
 };
 type CtxMatter = Record<ValueCategoryName, Record<ValueName, any>>;
