@@ -439,25 +439,10 @@ var SharedCtx_default = SharedCtx;
 var MergedCtx = class {
   constructor(ownCtx, ctxs, valueCategories) {
     this.ownCtx = ownCtx;
-    this.ctxs = new Map(Object.entries(ctxs));
+    this.ctxs = new Map(Object.entries({ ...ctxs, [ownCtx.id]: ownCtx }));
     this.valueIdAndCtxIdMap = this._createValuesIdAndCtxIdMap();
     this.valueCategories = valueCategories;
   }
-  // _subscribeAllForSharedCtx(valueCategories) {
-  //    for (const category of valueCategories) {
-  //       if (category.setterType === 'state') {
-  //          for (const [key, ctxId] of this.valueIdAndCtxIdMap[category.id]) {
-  //             if (ctxId === this.ownCtx.id) {
-  //                continue;
-  //             }
-  //             const ctx = this.ctxs.get(ctxId);
-  //             if (ctx) {
-  //                ctx.subscribe(key, value => this.setValue(key, value));
-  //             }
-  //          }
-  //       }
-  //    }
-  // }
   getCtxIdByValueId(valueId) {
     return this.valueIdAndCtxIdMap.get(valueId);
   }
@@ -481,16 +466,6 @@ var MergedCtx = class {
       return ctx.getValue(key);
     }
   }
-  // getRef(key: ValueId, category: Record<string, any>): any {
-  //    const ctxId = this.valueIdAndCtxIdMap[category.id].get(key);
-  //    if (ctxId === this.ownCtx) {
-  //       return this.ownCtx.getRef(key, category);
-  //    }
-  //    const ctx = this.ctxs.get(ctxId);
-  //    if (ctx) {
-  //       return ctx.getRef(key, category);
-  //    }
-  // }
   dynamicSetup(ctxMatter, options) {
     for (const ctx of this.ctxs.values()) {
       ctx.dynamicSetup(ctxMatter, options);

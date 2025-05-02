@@ -48,11 +48,16 @@ const themeSwitchMachine = retomus.createMachine(
       toggle: ({ ctx, done }) => {
         console.log('toggleTheme');
         ctx.state.theme = ctx.state.theme === 'light' ? 'dark' : 'light';
+        ctx.ref.theme = ctx.state.theme;
         done();
       },
     },
     initialStatus: { status: 'light' },
-    ctx: {},
+    ctx: {
+      ref: {
+        theme: 'light',
+      }
+    },
     options: { sharedCtxIds: ['global'] },
   }),
 );
