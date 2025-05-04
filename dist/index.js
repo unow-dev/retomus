@@ -464,7 +464,7 @@ var SharedCtx_default = SharedCtx;
 var MergedCtx = class {
   constructor(ownCtx, ctxs, valueCategories) {
     this.ownCtx = ownCtx;
-    this.ctxs = new Map(Object.entries({ ...ctxs, [ownCtx.id]: ownCtx }));
+    this.ctxs = new Map(Object.entries({ [ownCtx.id]: ownCtx, ...ctxs }));
     this.valueIdAndCtxIdMap = this._createValuesIdAndCtxIdMap();
     this.valueCategories = valueCategories;
   }
@@ -473,9 +473,6 @@ var MergedCtx = class {
   }
   setValue(key, value) {
     const ctxId = this.valueIdAndCtxIdMap.get(key);
-    if (ctxId === this.ownCtx.id) {
-      return this.ownCtx.setValue(key, value);
-    }
     const ctx = this.ctxs.get(ctxId);
     if (ctx) {
       return ctx.setValue(key, value);
@@ -483,9 +480,6 @@ var MergedCtx = class {
   }
   getValue(key) {
     const ctxId = this.valueIdAndCtxIdMap.get(key);
-    if (ctxId === this.ownCtx.id) {
-      return this.ownCtx.getValue(key);
-    }
     const ctx = this.ctxs.get(ctxId);
     if (ctx) {
       return ctx.getValue(key);
@@ -499,9 +493,6 @@ var MergedCtx = class {
   }
   subscribe(key, setState) {
     const ctxId = this.valueIdAndCtxIdMap.get(key);
-    if (ctxId === this.ownCtx.id) {
-      return this.ownCtx.subscribe(key, setState);
-    }
     const ctx = this.ctxs.get(ctxId);
     if (ctx) {
       return ctx.subscribe(key, setState);
@@ -611,7 +602,7 @@ var MergedCtx = class {
   }
   _createValuesIdAndCtxIdMap() {
     const valuesIdAndCtxIdMap = /* @__PURE__ */ new Map();
-    const ctxs = [...this.ctxs.values(), this.ownCtx];
+    const ctxs = [this.ownCtx, ...this.ctxs.values()];
     for (const ctx of ctxs) {
       ctx.values.forEach((valueObj, valueId) => {
         valuesIdAndCtxIdMap.set(valueId, ctx.id);

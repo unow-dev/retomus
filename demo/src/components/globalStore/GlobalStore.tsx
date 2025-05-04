@@ -56,53 +56,58 @@ const themeSwitchMachine = retomus.createMachine(
     ctx: {
       ref: {
         theme: 'light',
-      }
+      },
     },
     options: { sharedCtxIds: ['global'] },
   }),
 );
 
-const animatedBoxMachine = retomus.createMachine(
-  createMachineConfig({
-    id: 'animatedBox',
-    status: ['center', 'left', 'right'],
-    actions: ['moveCenter', 'moveLeft', 'moveRight'],
-    actionHandlers: {
-      moveCenter: ({ ctx, done }) => {
-        console.log('moveCenter');
-        console.log(ctx.animationRef.moveXAnimation);
-        ctx.animationRef.moveXAnimation.animate('div', {
-          x: 0,
-        });
-        done();
+const createdAnimatedBoxMachine = () =>
+  retomus.createMachine(
+    createMachineConfig({
+      id: 'animatedBox',
+      status: ['center', 'left', 'right'],
+      actions: ['moveCenter', 'moveLeft', 'moveRight'],
+      actionHandlers: {
+        moveCenter: ({ ctx, done }) => {
+          console.log('moveCenter');
+          console.log(ctx.animationRef.moveXAnimation);
+          ctx.animationRef.moveXAnimation.animate('div', {
+            x: 0,
+          });
+          done();
+        },
+        moveLeft: ({ ctx, done }) => {
+          console.log('moveLeft');
+          console.log(ctx.animationRef.moveXAnimation);
+          ctx.animationRef.moveXAnimation.animate('div', {
+            x: -100,
+          });
+          done();
+        },
+        moveRight: ({ ctx, done }) => {
+          console.log('moveRight');
+          console.log(ctx.animationRef.moveXAnimation);
+          ctx.animationRef.moveXAnimation.animate('div', {
+            x: 100,
+          });
+          done();
+        },
       },
-      moveLeft: ({ ctx, done }) => {
-        console.log('moveLeft');
-        console.log(ctx.animationRef.moveXAnimation);
-        ctx.animationRef.moveXAnimation.animate('div', {
-          x: -100,
-        });
-        done();
+      transitions: {
+        center: { moveLeft: 'left', moveRight: 'right' },
+        left: { moveCenter: 'center', moveRight: 'right' },
+        right: { moveCenter: 'center', moveLeft: 'left' },
       },
-      moveRight: ({ ctx, done }) => {
-        console.log('moveRight');
-        console.log(ctx.animationRef.moveXAnimation);
-        ctx.animationRef.moveXAnimation.animate('div', {
-          x: 100,
-        });
-        done();
+      initialStatus: { status: 'center' },
+      ctx: {
+        animationRef: {
+          moveXAnimation: null,
+        },
       },
-    },
-    transitions: {
-      center: { moveLeft: 'left', moveRight: 'right' },
-      left: { moveCenter: 'center', moveRight: 'right' },
-      right: { moveCenter: 'center', moveLeft: 'left' },
-    },
-    initialStatus: { status: 'center' },
-    ctx: {},
-    options: { sharedCtxIds: ['global'] },
-  }),
-);
+      options: { sharedCtxIds: ['global'] },
+    }),
+  );
 
 const ThemeSwitcherComponent = ({ machines, sharedCtx }) => {
   const { themeSwitchMachine, animatedBoxMachine } = machines;
@@ -178,7 +183,10 @@ const GlobalStore = () => {
   return (
     <Card>
       <ThemeSwitcherComponent
-        machines={{ themeSwitchMachine, animatedBoxMachine }}
+        machines={{
+          themeSwitchMachine,
+          animatedBoxMachine: createdAnimatedBoxMachine(),
+        }}
         sharedCtx={sharedCtx}
       />
     </Card>

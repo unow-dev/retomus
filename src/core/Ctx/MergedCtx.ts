@@ -19,7 +19,7 @@ class MergedCtx implements IMachineCtx {
     valueCategories: ValueCategories,
   ) {
     this.ownCtx = ownCtx;
-    this.ctxs = new Map(Object.entries({ ...ctxs, [ownCtx.id]: ownCtx }));
+    this.ctxs = new Map(Object.entries({ [ownCtx.id]: ownCtx, ...ctxs }));
 
     this.valueIdAndCtxIdMap = this._createValuesIdAndCtxIdMap();
     this.valueCategories = valueCategories;
@@ -31,9 +31,9 @@ class MergedCtx implements IMachineCtx {
 
   setValue(key: ValueId, value: any) {
     const ctxId = this.valueIdAndCtxIdMap.get(key);
-    if (ctxId === this.ownCtx.id) {
-      return this.ownCtx.setValue(key, value);
-    }
+    // if (ctxId === this.ownCtx.id) {
+    //   return this.ownCtx.setValue(key, value);
+    // }
     const ctx = this.ctxs.get(ctxId);
     if (ctx) {
       return ctx.setValue(key, value);
@@ -42,9 +42,9 @@ class MergedCtx implements IMachineCtx {
 
   getValue(key: ValueId): any {
     const ctxId = this.valueIdAndCtxIdMap.get(key);
-    if (ctxId === this.ownCtx.id) {
-      return this.ownCtx.getValue(key);
-    }
+    // if (ctxId === this.ownCtx.id) {
+    //   return this.ownCtx.getValue(key);
+    // }
     const ctx = this.ctxs.get(ctxId);
     if (ctx) {
       return ctx.getValue(key);
@@ -60,9 +60,9 @@ class MergedCtx implements IMachineCtx {
 
   subscribe(key: ValueId, setState: React.Dispatch<React.SetStateAction<any>>) {
     const ctxId = this.valueIdAndCtxIdMap.get(key);
-    if (ctxId === this.ownCtx.id) {
-      return this.ownCtx.subscribe(key, setState);
-    }
+    // if (ctxId === this.ownCtx.id) {
+    //   return this.ownCtx.subscribe(key, setState);
+    // }
     const ctx = this.ctxs.get(ctxId);
     if (ctx) {
       return ctx.subscribe(key, setState);
@@ -185,7 +185,7 @@ class MergedCtx implements IMachineCtx {
 
   private _createValuesIdAndCtxIdMap() {
     const valuesIdAndCtxIdMap = new Map();
-    const ctxs = [...this.ctxs.values(), this.ownCtx];
+    const ctxs = [this.ownCtx, ...this.ctxs.values()];
     for (const ctx of ctxs) {
       ctx.values.forEach((valueObj, valueId) => {
         valuesIdAndCtxIdMap.set(valueId, ctx.id);
