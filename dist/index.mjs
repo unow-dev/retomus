@@ -829,6 +829,7 @@ var Machine = class {
         handler({
           ctx: this.ctx[this.typeBus.ctx]?.toReactiveRecord(),
           payload,
+          status: this.status,
           done: (returnValues = {}) => {
             resolve(returnValues);
           }
